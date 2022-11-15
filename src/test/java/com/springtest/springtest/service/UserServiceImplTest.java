@@ -49,7 +49,6 @@ class UserServiceImplTest {
         verify(repository, times(1)).findById(2L);
     }
 
-
     @Test
     void getAllUsers_test_should_be_success_test() {
         User user1 = new User(1L, "Sanyi", 25);
@@ -90,11 +89,10 @@ class UserServiceImplTest {
 
         assertEquals("Sanyi", testUser.getName());
         assertEquals(25, testUser.getAge());
-
     }
 
     @Test
-    void createUser_should_fail_and_throw_IllegalArgument_Exception_test() {
+    void createUser_with_existing_user_should_fail_and_throw_IllegalArgument_Exception_test() {
         User user = new User(1L, "Sanyi", 25);
 
         when(repository.findByName(anyString())).thenReturn(Optional.of(user));
@@ -103,7 +101,66 @@ class UserServiceImplTest {
             service.createUser(user);
         }, "User already exists with the name: " + user.getName());
 
+        verify(repository, never()).save(any());
     }
+
+    @Test
+    void createUser_with_short_name_should_fail_and_throw_IllegalArgument_Exception_test() {
+        User user = new User(1L, "Sa", 25);
+
+        //when(repository.findByName(anyString())).thenReturn(Optional.of(user));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            service.createUser(user);
+        }, "Lenght of Name must be min. 3");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createUser_with_name_start_with_number_should_fail_and_throw_IllegalArgument_Exception_test() {
+        User user = new User(1L, "1Sanyi", 25);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            service.createUser(user);
+        }, "Name must start with letter.");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createUser_with_name_start_with_symbol_should_fail_and_throw_IllegalArgument_Exception_test() {
+        User user = new User(1L, "!Sanyi", 25);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            service.createUser(user);
+        }, "Name must start with letter.");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createUser_with_age_zero_should_fail_and_throw_IllegalArgument_Exception_test() {
+        User user = new User(1L, "Sanyi", 0);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            service.createUser(user);
+        }, "Age must be over 0 and under 110");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createUser_with_age_over_110_should_fail_and_throw_IllegalArgument_Exception_test() {
+        User user = new User(1L, "Sanyi", 111);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            service.createUser(user);
+        }, "Age must be over 0 and under 110");
+
+        verify(repository, never()).save(any());
+    }
+
 
     @Test
     void updateUser_should_success_test() {
@@ -115,7 +172,7 @@ class UserServiceImplTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-        User resultUser = service.updateUser(1L,updatedUser);
+        User resultUser = service.updateUser(1L, updatedUser);
 
         assertEquals("Pisti", resultUser.getName());
         assertEquals(25, resultUser.getAge());
@@ -130,11 +187,10 @@ class UserServiceImplTest {
         when(repository.findById(2L)).thenThrow(new IllegalArgumentException("Cannot find user with id: " + 2L));
 
         IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            service.updateUser(2L,user);
+            service.updateUser(2L, user);
         }, "Cannot find user with id: " + 2L);
 
         verify(repository, never()).save(any());
-
     }
 
     @Test
