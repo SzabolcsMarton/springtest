@@ -10,8 +10,12 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements IUserService {
 
-    @Autowired
     private UserRepository repository;
+
+    @Autowired
+    public UserServiceImpl(UserRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public User getOneUserById(Long id) {
@@ -25,6 +29,10 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public User createUser(User user) {
+        String name = user.getName();
+        if (repository.findByName(name).isPresent()) {
+            throw new IllegalArgumentException("User already exists with the name: " + name);
+        }
         return repository.save(user);
     }
 
