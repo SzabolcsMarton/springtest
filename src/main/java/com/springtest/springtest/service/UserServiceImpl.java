@@ -1,5 +1,6 @@
 package com.springtest.springtest.service;
 
+import com.springtest.springtest.helpers.Validator;
 import com.springtest.springtest.model.User;
 import com.springtest.springtest.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements IUserService {
 
-    private UserRepository repository;
+    private final UserRepository repository;
 
     @Autowired
     public UserServiceImpl(UserRepository repository) {
@@ -28,11 +29,13 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public User createUser(User user) {
+    public User createUser(User user) throws IllegalArgumentException{
+        Validator.validateUser(user);
         String name = user.getName();
         if (repository.findByName(name).isPresent()) {
             throw new IllegalArgumentException("User already exists with the name: " + name);
         }
+
         return repository.save(user);
     }
 
